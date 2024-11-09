@@ -17,6 +17,27 @@ const getSingleUser = async (req, res) => {
 const showCurrentUser = async (req, res) => {
   res.status(StatusCodes.OK).json({ user: req.user });
 };
+
+// update user with findOneAndUpdate
+// const updateUser = async (req, res) => {
+//   const {
+//     body: { name, email },
+//     user: { userId },
+//   } = req;
+//   if (!name || !email) {
+//     throw new CustomError.BadRequestError('Please provide name and email');
+//   }
+//   const user = await User.findOneAndUpdate(
+//     { _id: userId },
+//     { name, email },
+//     { new: true, runValidators: true }
+//   );
+//   const tokenUser = createTokenUser(user);
+//   attachCookiesToResponse({ res, user: tokenUser });
+//   res.status(StatusCodes.OK).json({ user: tokenUser });
+// };
+
+// update user with user.save()
 const updateUser = async (req, res) => {
   const {
     body: { name, email },
@@ -25,15 +46,15 @@ const updateUser = async (req, res) => {
   if (!name || !email) {
     throw new CustomError.BadRequestError('Please provide name and email');
   }
-  const user = await User.findOneAndUpdate(
-    { _id: userId },
-    { name, email },
-    { new: true, runValidators: true }
-  );
+  const user = await User.findOne({ _id: userId });
+  user.name = name;
+  user.email = email;
+  await user.save();
   const tokenUser = createTokenUser(user);
   attachCookiesToResponse({ res, user: tokenUser });
   res.status(StatusCodes.OK).json({ user: tokenUser });
 };
+
 const updateUserPassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   if (!oldPassword || !newPassword) {
