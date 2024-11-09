@@ -3,13 +3,19 @@ require('express-async-errors');
 const express = require('express');
 const connectDB = require('./db/connect');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const authRouter = require('./routes/authRoutes');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 const app = express();
 const port = process.env.PORT || 4000;
 app.use(express.json());
+app.use(cookieParser(process.env.JWT_SECRET));
 app.get('/', (req, res) => {
+  res.send('Hello World');
+});
+app.get('/api/v1', (req, res) => {
+  console.log(req.signedCookies);
   res.send('Hello World');
 });
 
