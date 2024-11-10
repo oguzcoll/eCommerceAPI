@@ -2,7 +2,9 @@ const { StatusCodes } = require('http-status-codes');
 const CustomError = require('../errors');
 const Review = require('../models/Review');
 const Product = require('../models/Product');
+const { checkPermissions } = require('../utils');
 
+// @desc Create a review
 const createReview = async (req, res) => {
   const { product: productId } = req.body;
   const isValidProduct = await Product.findOne({ _id: productId });
@@ -24,17 +26,56 @@ const createReview = async (req, res) => {
   const review = await Review.create(req.body);
   res.status(StatusCodes.CREATED).json({ review });
 };
+
+// @desc Get all reviews
 const getAllReviews = async (req, res) => {
-  res.send('Get All Reviews');
+  const reviews = await Review.find({}).populate({
+    path: 'product',
+    select: 'name company price',
+  });
+
+  res.status(StatusCodes.OK).json({ reviews, count: reviews.length });
 };
+
+// @desc Get single review
 const getSingleReview = async (req, res) => {
-  res.send('Get Single Review');
+  const { id: reviewId } = req.params;
+  const review = await Review.findOne({ _id: reviewId });
+  if (!review) {
+    throw new CustomError.NotFoundError(`No review with id : ${reviewId}`);
+  }
+  res.status(StatusCodes.OK).json({ review });
 };
+
+// @desc Update a review
 const updateReview = async (req, res) => {
-  res.send('Update Review');
+  const {
+    params: { id: reviewId },
+    body: { rating, title, comment },
+  } = req;
+
+  const review = await Review.findOne({ _id: reviewId });
+  if (!review) {
+    throw new CustomError.NotFoundError(`No review with id : ${reviewId}`);
+  }
+  checkPermissions(req.user, review.user);
+  review.rating = rating;
+  review.title = title;
+  review.comment = comment;
+  await review.save();
+  res.send(StatusCodes.OK).json({ msg: `${reviewId} id review updated` });
 };
+
+// @desc Delete a review
 const deleteReview = async (req, res) => {
-  res.send('Delete Review');
+  const { id: reviewId } = req.params;
+  const review = await Review.findOne({ _id: reviewId });
+  if (!review) {
+    throw new CustomError.NotFoundError(`No review with id : ${reviewId}`);
+  }
+  checkPermissions(req.user, review.user);
+  await review.remove();
+  res.status(StatusCodes.OK).json({ msg: 'Review deleted' });
 };
 module.exports = {
   createReview,
