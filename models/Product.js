@@ -38,6 +38,7 @@ const ProductSchema = new mongoose.Schema(
     colors: {
       type: [String],
       required: true,
+      default: ['#222'],
     },
     featured: {
       type: Boolean,
@@ -57,7 +58,7 @@ const ProductSchema = new mongoose.Schema(
       default: 0,
     },
     user: {
-      type: mongoose.Types.ObjectId,
+      type: Object,
       ref: 'User',
       required: true,
     },
